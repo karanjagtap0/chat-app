@@ -156,6 +156,66 @@
     .emoji-picker-trigger:hover {
       background-color: transparent;
     }
+
+    /* GIF Picker Modal */
+    #gifPickerModal {
+      display: none;
+      position: absolute;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      width: 80%;
+      max-width: 600px;
+      z-index: 1000;
+      box-sizing: border-box;
+    }
+
+    #gifSearchInput {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    #gifResults {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 15px;
+      padding: 0;
+      list-style: none;
+    }
+
+    #gifResults .gif-result {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    #gifResults .gif-result:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    #gifResults .gif-result img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    #gifResults .gif-result[data-url] {
+      transition: transform 0.3s ease-in-out;
+    }
   </style>
   <!-- font-awesome cdn -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -187,6 +247,18 @@
       </label>
       <input type="file" id="imageInput" accept="image/*" style="display: none;" />
       <button type="submit" id="send">Send</button>
+
+      <!-- GIF Picker Button -->
+      <button type="button" id="gifPickerBtn" class="icon-label">
+        <img src="./images/gif.png" alt="GIF" style="width: 20px; height: 20px;" />
+      </button>
+
+      <!-- GIF Picker Modal -->
+      <div id="gifPickerModal" style="display: none;">
+        <input type="text" id="gifSearchInput" placeholder="Search GIFs..." />
+        <div id="gifResults"></div>
+      </div>
+
     </form>
   </div>
 
@@ -235,6 +307,7 @@
 
       // Handle the rest of your chat functionality here...
       let currentRoom = null;
+      const giphyApiKey = 'AY8A8Duukza1lkqGfcKwyAuF6RAYBTUX';
       const form = document.getElementById('form');
       const send = document.getElementById('send');
       const input = document.getElementById('input');
@@ -244,6 +317,10 @@
       const leaveBtn = document.getElementById('leaveBtn');
       const currentRoomDisplay = document.getElementById('currentRoom');
       const imageInput = document.getElementById('imageInput');
+      const gifPickerBtn = document.getElementById('gifPickerBtn');
+      const gifPickerModal = document.getElementById('gifPickerModal');
+      const gifSearchInput = document.getElementById('gifSearchInput');
+      const gifResults = document.getElementById('gifResults');
       const decodedToken = jwt_decode(token); // You may need to include a JWT decoding library
       const username = decodedToken.username;
 
@@ -290,6 +367,35 @@
             });
           };
           reader.readAsDataURL(file);
+        }
+      });
+
+      gifPickerBtn.addEventListener('click', () => {
+        gifPickerModal.style.display = gifPickerModal.style.display === 'none' ? 'block' : 'none';
+      });
+
+      // Handle GIF search input
+      gifSearchInput.addEventListener('input', async (e) => {
+        const query = e.target.value;
+        if (query) {
+          const response = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${giphyApiKey}&q=${query}&limit=5`);
+          const data = await response.json();
+          gifResults.innerHTML = data.data.map(gif => `<img src="${gif.images.fixed_width.url}" class="gif-result" data-url="${gif.images.fixed_width.url}" />`).join('');
+        } else {
+          gifResults.innerHTML = '';
+        }
+      });
+
+      // Handle GIF selection
+      gifResults.addEventListener('click', (e) => {
+        if (e.target.classList.contains('gif-result')) {
+          const gifUrl = e.target.dataset.url;
+          socket.emit('message', {
+            room: currentRoom,
+            message: `<img src="${gifUrl}" style="max-width: 200px;" />`,
+            username
+          });
+          gifPickerModal.style.display = 'none'; // Close the GIF picker modal
         }
       });
 
