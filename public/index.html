@@ -209,7 +209,7 @@
       // Check if the user is logged in (checking for token in cookies)
       const token = document.cookie.split('; ').find(row => row.startsWith('token=')).split('=')[1];
 
-      console.log(token);
+      // console.log(token);
 
       const isLoggedIn = token ? true : false;
 
@@ -298,6 +298,13 @@
         item.innerHTML = `${msg.username}: ${msg.message}`;
         messages.appendChild(item);
       });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+        }
+      });
+
     });
   </script>
 </body>
