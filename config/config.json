@@ -1,9 +1,10 @@
 {
   "development": {
-    "username": "m11054_chat",
-    "password": "o1;jYiHHotvtUd9SgUhmroN5~CN>h4",
-    "database": "m11054_chat",
-    "host": "mysql2.serv00.com",
+    "username": "avnadmin",
+    "password": "AVNS_y4xFVtb_QCkaYEqQfUd",
+    "database": "defaultdb",
+    "port": "12810",
+    "host": "chatdb-namra-c0ff.j.aivencloud.com",
     "dialect": "mysql"
   },
   "test": {
@@ -14,10 +15,11 @@
     "dialect": "mysql"
   },
   "production": {
-    "username": "m11054_chat",
-    "password": "o1;jYiHHotvtUd9SgUhmroN5~CN>h4",
-    "database": "m11054_chat",
-    "host": "mysql2.serv00.com",
+    "username": "avnadmin",
+    "password": "AVNS_y4xFVtb_QCkaYEqQfUd",
+    "database": "defaultdb",
+    "port": "12810",
+    "host": "chatdb-namra-c0ff.j.aivencloud.com",
     "dialect": "mysql"
   }
 }
