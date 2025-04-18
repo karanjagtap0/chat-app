@@ -20,10 +20,5 @@ module.exports = (sequelize, DataTypes) => {
     modelName: 'User',
   });
 
-  // Move this inside the function
-  User.beforeCreate(async (user) => {
-    user.password = await bcrypt.hash(user.password, 10);
-  });
-
   return User;
 };
