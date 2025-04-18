@@ -15,7 +15,7 @@ const JWT_SECRET = 'e2f7c0cbb7e439e4a781578fe403c3aaf45d8f6c4b8a9f6b2d07b0ab0a4f
 
 // Middlewares
 app.use(cors({
-    origin: 'http://localhost:8888',
+    origin: '*',
     credentials: true
 }));
 app.use(bodyParser.json());
@@ -64,7 +64,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Socket.IO configuration
 const io = new Server(server, {
     cors: {
-        origin: 'http://localhost:8888',
+        origin: '*',
         methods: ['GET', 'POST'],
         credentials: true
     }
