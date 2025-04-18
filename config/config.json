@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "m11054_chat",
+    "password": "o1;jYiHHotvtUd9SgUhmroN5~CN>h4",
+    "database": "m11054_chat",
+    "host": "mysql2.serv00.com",
+    "dialect": "mysql"
+  },
+  "test": {
+    "username": "root",
+    "password": null,
+    "database": "chat_app",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "m11054_chat",
+    "password": "o1;jYiHHotvtUd9SgUhmroN5~CN>h4",
+    "database": "m11054_chat",
+    "host": "mysql2.serv00.com",
+    "dialect": "mysql"
+  }
+}

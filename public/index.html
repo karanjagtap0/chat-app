@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Socket.IO Chat Rooms</title>
+  <script src="/navbar.js" defer></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f7f9;
+      margin: 0;
+      /* padding: 20px; */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h2 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+
+    #chat-container {
+      width: 100%;
+      max-width: 600px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+      padding: 20px;
+      margin-top: 60px;
+    }
+
+    #room-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    input[type="text"],
+    #input {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #3498db;
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    #currentRoom {
+      font-weight: bold;
+      color: #27ae60;
+    }
+
+    #messages {
+      list-style: none;
+      padding: 0;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      background: #fefefe;
+    }
+
+    #messages li {
+      padding: 8px 12px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    #messages li:last-child {
+      border-bottom: none;
+    }
+
+    #form {
+      display: flex;
+      gap: 10px;
+    }
+
+    #form input {
+      flex-grow: 1;
+    }
+
+    @media (max-width: 600px) {
+
+      #room-controls,
+      #form {
+        flex-direction: column;
+      }
+
+      button,
+      input {
+        width: 100%;
+      }
+    }
+
+    .icon-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 12px;
+      background-color: #f1f1f1;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: background 0.2s ease;
+    }
+
+    .icon-label:hover {
+      background-color: #ddd;
+    }
+
+    .icon-label i {
+      color: #333;
+    }
+
+    #input[data-native-emoji="true"] {
+      font-size: 16px;
+      line-height: 1.4;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      outline: none;
+      width: 100%;
+      box-sizing: border-box;
+      background-color: #fff;
+      transition: border-color 0.3s ease;
+    }
+
+    #input[data-native-emoji="true"]:focus {
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .emoji-picker-trigger {
+      top: 2px !important;
+    }
+
+    .emoji-picker-trigger:hover {
+      background-color: transparent;
+    }
+  </style>
+  <!-- font-awesome cdn -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- emoji picker cdn -->
+  <link href="https://cdn.jsdelivr.net/npm/native-emoji/dist/nativeEmoji.min.css" rel="stylesheet">
+</head>
+
+<body>
+  <h2>Real-Time Chat with Rooms</h2>
+  <div id="chat-container">
+    <div id="room-controls">
+      <input type="text" id="roomInput" placeholder="Room name">
+      <button id="joinBtn">Join Room</button>
+      <button id="leaveBtn">Leave Room</button>
+    </div>
+
+    <p><strong>Current Room:</strong> <span id="currentRoom">None</span></p>
+
+    <ul id="messages"></ul>
+
+    <form id="form">
+      <div class="emoji-picker-container">
+        <input id="input" data-native-emoji="true" autocomplete="off" placeholder="Type a message..."
+          style="width: 100%;" />
+      </div>
+      <label for="imageInput" class="icon-label" style="cursor: pointer;">
+        <i class="fa fa-camera" aria-hidden="true"></i>
+      </label>
+      <input type="file" id="imageInput" accept="image/*" style="display: none;" />
+      <button type="submit" id="send">Send</button>
+    </form>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- emoji picker script -->
+  <script src="https://cdn.jsdelivr.net/npm/native-emoji/dist/nativeEmoji.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      new nativeEmoji();
+
+      document.addEventListener('click', function (e) {
+        if (e.target.closest('.emoji-picker')) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      });
+
+      // Check if the user is logged in (checking for token in cookies)
+      const token = document.cookie.split('; ').find(row => row.startsWith('token=')).split('=')[1];
+
+      console.log(token);
+
+      const isLoggedIn = token ? true : false;
+
+      // If not logged in, redirect to login page
+      if (!isLoggedIn) {
+        window.location.href = '/login';
+      }
+
+      // Initialize socket connection only if logged in
+      const socket = io({
+        extraHeaders: {
+          'Authorization': `Bearer ${token ? token : ''}`
+        }
+      });
+
+      socket.on('connect', () => {
+        console.log('Connected to socket server');
+      });
+
+      socket.on('disconnect', () => {
+        console.log('Disconnected from socket server');
+      });
+
+      // Handle the rest of your chat functionality here...
+      let currentRoom = null;
+      const form = document.getElementById('form');
+      const send = document.getElementById('send');
+      const input = document.getElementById('input');
+      const messages = document.getElementById('messages');
+      const roomInput = document.getElementById('roomInput');
+      const joinBtn = document.getElementById('joinBtn');
+      const leaveBtn = document.getElementById('leaveBtn');
+      const currentRoomDisplay = document.getElementById('currentRoom');
+      const imageInput = document.getElementById('imageInput');
+      const decodedToken = jwt_decode(token); // You may need to include a JWT decoding library
+      const username = decodedToken.username;
+
+      joinBtn.addEventListener('click', () => {
+        const room = roomInput.value.trim();
+        if (room) {
+          if (currentRoom) {
+            socket.emit('leave', currentRoom);
+          }
+          socket.emit('join', room);
+          currentRoom = room;
+          currentRoomDisplay.textContent = room;
+          messages.innerHTML = '';
+        }
+      });
+
+      leaveBtn.addEventListener('click', () => {
+        if (currentRoom) {
+          socket.emit('leave', currentRoom);
+          currentRoom = null;
+          currentRoomDisplay.textContent = 'None';
+          messages.innerHTML = '';
+        }
+      });
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const message = input.value.trim();
+        if (message && currentRoom) {
+          socket.emit('message', { room: currentRoom, message, username });
+          input.value = '';
+        }
+      });
+
+      imageInput.addEventListener('change', () => {
+        const file = imageInput.files[0];
+        if (file && currentRoom) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            socket.emit('message', {
+              room: currentRoom,
+              message: `<img src="${e.target.result}" style="max-width: 100px;" />`,
+              username
+            });
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      socket.on('message', (msg) => {
+        const item = document.createElement('li');
+        item.innerHTML = `${msg.username}: ${msg.message}`;
+        messages.appendChild(item);
+      });
+    });
+  </script>
+</body>
+
+</html>

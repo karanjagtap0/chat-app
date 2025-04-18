@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | Real-Time Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="/navbar.js" defer></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      background: linear-gradient(to right, #74ebd5, #acb6e5);
+    }
+
+    main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      margin-top: 60px;
+    }
+
+    .container {
+      background: #fff;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 450px;
+      text-align: center;
+    }
+
+    h2 {
+      margin-bottom: 25px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      border-color: #3498db;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #3498db;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    #response {
+      color: #e74c3c;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    .link {
+      margin-top: 15px;
+    }
+
+    .link a {
+      color: #3498db;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .link a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <div class="container">
+      <h2>Welcome Back!</h2>
+      <form id="loginForm">
+        <input type="email" name="email" placeholder="Email" required />
+        <input type="password" name="password" placeholder="Password" required />
+        <button type="submit">Login</button>
+      </form>
+
+      <p id="response"></p>
+
+      <div class="link">
+        Don't have an account? <a href="/register">Register here</a>
+      </div>
+    </div>
+  </main>
+  <script>
+    const form = document.getElementById('loginForm');
+    const responseText = document.getElementById('response');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+          credentials: 'include',
+        });
+
+        const result = await res.json();
+        responseText.textContent = result.message;
+
+        if (res.status === 200) {
+          document.cookie = `token=${result.token}; path=/; max-age=${7 * 24 * 60 * 60}; secure; samesite=strict`;
+          alert('Login successful!');
+          window.location.href = '/';
+        }
+      } catch (err) {
+        console.error(err);
+        responseText.textContent = 'Something went wrong!';
+      }
+    });
+  </script>
+</body>
+
+</html>
