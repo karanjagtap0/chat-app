@@ -2,7 +2,7 @@
   "development": {
     "username": "avnadmin",
     "password": "AVNS_y4xFVtb_QCkaYEqQfUd",
-    "database": "m11054_chat",
+    "database": "defaultdb",
     "port": "12810",
     "host": "chatdb-namra-c0ff.j.aivencloud.com",
     "dialect": "mysql"
@@ -17,7 +17,7 @@
   "production": {
     "username": "avnadmin",
     "password": "AVNS_y4xFVtb_QCkaYEqQfUd",
-    "database": "m11054_chat",
+    "database": "defaultdb",
     "port": "12810",
     "host": "chatdb-namra-c0ff.j.aivencloud.com",
     "dialect": "mysql"
